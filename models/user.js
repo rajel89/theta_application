@@ -3,13 +3,13 @@ const jwt = require('jsonwebtoken');
 const mongoose = require('mongoose');
 const Joi = require('joi');
 const {postSchema} = require('./post');
+const {aboutSchema} = require('./about');
 
 const userSchema = new mongoose.Schema({
     name: {type: String, required: true, minlength: 1, maxlength: 50},
     email: {type: String, unique: true, required: true, minlength:1, maxlength: 255},
     password: {type: String, required: true, maxlength: 1024, minlength: 5},
-    //about:{type: String, required: true, maxlength: 1024, minlength: 1},
-    // locality:{type: String, required: true, maxlength: 1024, minlength: 1},
+    about:{aboutSchema},
     isAdmin: {type: Boolean, default: false},
     posts:[postSchema],
 

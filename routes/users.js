@@ -9,7 +9,10 @@ const router = express.Router();
 
 //functions to be able to GET, POST, PUT user//
 
-//This is finding user
+//This is finding user by ID, the users ID will cary the services offered listed as a array of services.
+
+
+//Admin only
 router.get('/', async (req, res) => {
     try{
         const users = await User.find();
@@ -19,7 +22,7 @@ router.get('/', async (req, res) => {
     }
 });
 
-//This is finding user by ID
+
 router.get('/:id', async (req, res) => {
     try{
         const user = await User.findById(req.params.id);
@@ -30,6 +33,7 @@ router.get('/:id', async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
+
 
 //This is finding a user's POST
 router.get('/:userId/post', async (req, res) => {
@@ -44,8 +48,6 @@ router.get('/:userId/post', async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
-
-
 //This is to create a USER with authentication requirement using jwtToken//
 router.post('/', auth, async (req, res) => {
     try{
@@ -60,7 +62,7 @@ router.post('/', auth, async (req, res) => {
             name: req.body.name,
             email: req.body.email,
             password: await bcrypt.hash(req.body.password, salt),
-            services: [],
+
         });
         await user.save();
 
@@ -75,18 +77,37 @@ router.post('/', auth, async (req, res) => {
     }
 });
 
+
+router.post('/:userId/posts', async (req, res) => {
+    try{
+        const user = await User.findById(req.params.userId);
+        if(!user) return res.status(400).send(`The user with id "${req.params.userId}" does not exist.`);
+    
+        const post = new Post({
+            name: user.name,
+            posts: req.body.text,
+        });
+    
+        user.posts.push(post);
+    
+        await user.save();
+        return res.send(user.posts);
+    }catch (ex){
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
 //Update user information e-mail, name, password
 router.put('/:id', async (req, res) => {
     try{
-        const {error} = validateUser(req.body);
+        const {error} = validateUser(req.body.id);
         if(error) return res.status(400).send(error);
         const user = await User.findByIdAndUpdate(
             req.params.id,
             {
-                email: req.body.email,
+                // email: req.body.email,
                 name: req.body.name,
-                password: req.body.password,
-                //locality: req.body.locality,
+                // password: req.body.password,
+                posts:[]
             },
             {new: true}
         );
@@ -98,6 +119,25 @@ router.put('/:id', async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
+
+//this is to delete user
+router.delete('/:userId', auth, async (req, res) => {
+    try {
+        const user = await User.findById(req.params.Id);
+        if(!user) return res.status(400).send(`The user with id "${req.params.Id}" does not exist.`);
+
+        post = await post.remove();
+
+        await user.save();
+        return res.send(user.post);
+    }catch (ex){
+        return res.status(500).send(`Internal Server Error: ${ex}`);
+    }
+});
+
+
+
+
 
 
 //This is to delete a services posted
