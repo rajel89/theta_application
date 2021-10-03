@@ -134,29 +134,15 @@ router.delete('/:userId', auth, async (req, res) => {
     }
 });
 
-
-//This is to delete a services posted
-router.delete('/:userId/post/postId', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.params.postId);
-        if(!user) return res.status(400).send(`The user with id "${req.params.postId}" does not exist.`);
-
-        post = await post.remove();
-
-        await user.save();
-        return res.send(user.post);
-    }catch (ex){
-        return res.status(500).send(`Internal Server Error: ${ex}`);
-    }
-});
-
-router.post('/register', sync(req, res) => {
+router.post('/register', async(req, res) => {
     //return res.send(req.body);
-    try{let validation = validateUser(req.body);
+    try{
+        let validation = validateUser(req.body);
         if (validation?.error)
         {
             res.status(400).send(validation.error.details[0].message); 
         }
+
         let user = await User.frindOne({email: req.body.email});
         if (user) return res.status(400).send(`Email ${req.body.mail} is already registered.`);
 
@@ -184,7 +170,18 @@ router.post('/register', sync(req, res) => {
 }
 });
 
+router.get('/dashboard/seller', async(req, res) => {
+    
+    try{
+        
+        return res.status(200).send("test");
+
+    }catch(e){
+        return res.status(500).send(`Internal Server Error: ${e}`);
+    }
+});
 
 
 
-module.exports= router;s
+
+module.exports= router;
