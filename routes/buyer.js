@@ -171,6 +171,9 @@ router.post('/hire/freelance', auth, async(req, res) => {
         });
         
     });
+
+    
+
     
 });
 

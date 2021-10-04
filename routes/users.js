@@ -31,67 +31,7 @@ router.get('/:id', async (req, res) => {
     }
 });
 
-//This is finding a user's POST
-router.get('/:userId/post', async (req, res) => {
-    try{
-        const user = await User.findById();
-        const { error } = validatePost(req.body);
-        const post = await Post.findById(req.params.id);
-        if(!post)
-            return res.status(400).send(`The post with id "${req.params.id}" does not exist.`);
-            return res.send(post);
-    }catch(ex){
-        return res.status(500).send(`Internal Server Error: ${ex}`);
-    }
-});
-//This is to create a USER with authentication requirement using jwtToken//
-router.post('/', auth, async (req, res) => {
-    try{
-        const {error} = validateUser(req.body);
-        if(error) return res.status(400).send(error.details[0].message);
-
-        let user = await User.findOne({ email: req.body.email});
-        if (user) return res.status(400).send(`User already registered.`);
-
-        const salt = await bcrypt.genSalt(10);
-        user = new User({
-            name: req.body.name,
-            email: req.body.email,
-            password: await bcrypt.hash(req.body.password, salt),
-
-        });
-        await user.save();
-
-        const token = user.generateAuthToken();
-
-        return res
-            .header('x-auth-token', token)
-            .header('access-control-expose-headers', 'x-auth-token')
-            .send({_id: user._id, name: user.name, email: user.email})
-    }catch (ex){
-        return res.status(500).send(`Internal Server Error: ${ex}`);
-    }
-});
-
-router.post('/:userId/posts', async (req, res) => {
-    try{
-        const user = await User.findById(req.params.userId);
-        if(!user) return res.status(400).send(`The user with id "${req.params.userId}" does not exist.`);
-    
-        const post = new Post({
-            name: user.name,
-            posts: req.body.text,
-        });
-    
-        user.posts.push(post);
-    
-        await user.save();
-        return res.send(user.posts);
-    }catch (ex){
-        return res.status(500).send(`Internal Server Error: ${ex}`);
-    }
-});
-//Update user information e-mail, name, password
+//update seller status from seller to buyer
 router.put('/:id', async (req, res) => {
     try{
         const {error} = validateUser(req.body.id);
@@ -99,10 +39,10 @@ router.put('/:id', async (req, res) => {
         const user = await User.findByIdAndUpdate(
             req.params.id,
             {
-                // email: req.body.email,
+                email: req.body.email,
                 name: req.body.name,
-                // password: req.body.password,
-                posts:[]
+                password: req.body.password,
+                accountType: req.body.accountType
             },
             {new: true}
         );
@@ -114,21 +54,6 @@ router.put('/:id', async (req, res) => {
         return res.status(500).send(`Internal Server Error: ${ex}`);
     }
 });
-
-//this is to delete user
-router.delete('/:userId', auth, async (req, res) => {
-    try {
-        const user = await User.findById(req.params.Id);
-        if(!user) return res.status(400).send(`The user with id "${req.params.Id}" does not exist.`);
-
-        post = await post.remove();
-
-        await user.save();
-        return res.send(user.post);
-    }catch (ex){
-        return res.status(500).send(`Internal Server Error: ${ex}`);
-    }
-}); 
 
 router.post('/register', async(req, res) => {
     // return res.send(req.body);
